@@ -5,6 +5,8 @@ from music_utils import generate_music
 # Display image from local path in repo
 st.image("AIMG.png", caption="AI creating music", use_column_width=True)
 
+st.image("https://raw.githubusercontent.com/your-username/your-repo-name/main/AIMG.png", caption="AI creating music", use_column_width=True)
+
 
 st.set_page_config(page_title="AI Music Generator", layout="wide")
 
