@@ -1,69 +1,55 @@
-import streamlit as st
-import numpy as np
-from midiutil import MIDIFile
-import tempfile
-import time
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 import os
+import tempfile
+from transformers import pipeline
+from pydub.generators import Sine
+from pydub import AudioSegment
+import random
 
-st.set_page_config(page_title="AI Music Generator 🎵", layout="centered")
-st.title("🎼 Fast AI Music Generator")
-st.markdown("Generate random melodies in seconds — no deep learning model required!")
+app = Flask(__name__)
+CORS(app)
+
 st.image("AIMG.png", caption="AI creating music", use_container_width=True)
 
-# Function to generate a simple random melody
 
-def generate_melody(scale_notes, length=8, tempo=120):
-    melody = np.random.choice(scale_notes, size=length)
-    return melody
+# Dummy pipeline for example (replace with actual music generation model if available)
+music_gen = pipeline("text-generation", model="gpt2")
 
-# Function to create a MIDI file from melody
-def save_midi(melody, tempo=120, file_name="output.mid"):
-    midi = MIDIFile(1)  # 1 track
-    track = 0
-    time_ = 0
-    channel = 0
-    volume = 100
-    duration = 1
 
-    midi.addTempo(track, time_, tempo)
 
-    for note in melody:
-        midi.addNote(track, channel, note, time_, duration, volume)
-        time_ += duration
+@app.route("/generate-music", methods=["POST"])
+def generate_music():
+    try:
+        data = request.get_json()
+        prompt = data.get("prompt", "Relaxing music")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mid") as tmp:
-        with open(tmp.name, "wb") as f:
-            midi.writeFile(f)
-        return tmp.name
+        # Simulate AI response
+        result = music_gen(prompt, max_length=30, do_sample=True)[0]['generated_text']
 
-# Define a simple C Major scale
-scales = {
-    "C Major": [60, 62, 64, 65, 67, 69, 71, 72],  # MIDI numbers
-    "A Minor": [57, 59, 60, 62, 64, 65, 67, 69],
-    "Pentatonic": [60, 62, 64, 67, 69, 72],
-}
+        # Use generated result to create fake audio
+        frequency = 440 + random.randint(-50, 50)  # vary tone based on output
+        duration_ms = 3000  # 3 seconds
+        tone = Sine(frequency).to_audio_segment(duration=duration_ms)
 
-# User Inputs
-scale_choice = st.selectbox("🎵 Choose a scale:", list(scales.keys()))
-length = st.slider("🎚️ Length of melody (notes)", 4, 32, 8)
-tempo = st.slider("⏱️ Tempo (BPM)", 60, 180, 120)
+        # Add a fade in/out effect
+        tone = tone.fade_in(200).fade_out(200)
 
-if st.button("🎶 Generate Melody"):
-    with st.spinner("Composing your melody..."):
-        melody = generate_melody(scales[scale_choice], length, tempo)
-        midi_file_path = save_midi(melody, tempo)
-        st.success("✅ Melody generated!")
+        # Save audio to a temporary file
+        temp_dir = tempfile.gettempdir()
+        filename = os.path.join(temp_dir, "music.wav")
+        tone.export(filename, format="wav")
 
-        # MIDI Player (uses HTML5 audio player)
-        audio_file_path = midi_file_path.replace(".mid", ".wav")
+        return send_file(filename, mimetype="audio/wav")
 
-        # Convert to WAV using simple system tool (optional)
-        try:
-            from pydub import AudioSegment
-            sound = AudioSegment.from_file(midi_file_path, format="mid")
-            sound.export(audio_file_path, format="wav")
-            st.audio(audio_file_path, format="audio/wav")
-        except:
-            st.warning("Unable to preview audio (missing pydub or ffmpeg). Download MIDI below instead.")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-        st.download_button("⬇️ Download MIDI", open(midi_file_path, "rb"), file_name="ai_melody.mid")
+
+@app.route("/")
+def home():
+    return "🎵 AI Music Generator Flask API is Running! Use /generate-music endpoint."
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
