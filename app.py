@@ -3,6 +3,9 @@ from music_utils import generate_music
 
 st.set_page_config(page_title="AI Music Generator", layout="wide")
 
+st.image("AIMG.png", caption="AI creating music", use_container_width=True)
+
+
 st.title("🎵 AI Music Generator")
 prompt = st.text_input("Enter your music description prompt (e.g., Lo-fi chill with rain):")
 
