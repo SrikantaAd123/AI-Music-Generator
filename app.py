@@ -1,7 +1,8 @@
 import streamlit as st
 from music_utils import generate_music
 
-st.image("AIMG.png", caption="AI creating music", use_column_width=True)
+st.image("AIMG.png", caption="AI creating music", use_container_width=True)
+
 
 st.set_page_config(page_title="AI Music Generator", layout="wide")
 
