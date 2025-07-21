@@ -1,4 +1,6 @@
 streamlit
-transformers
-torchaudio
-torch
+torch>=2.0
+torchaudio>=2.0
+transformers>=4.40.0
+accelerate>=0.24.0
+soundfile
