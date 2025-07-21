@@ -6,7 +6,7 @@
 Generate music using natural language prompts with AI. Built using Hugging Face MusicGen and Streamlit.
 
 ## 👨‍💻 Created By
-**Srikanta Vai Sravan** – Launched Global AI Internship
+**Srikanta Vai Sravan** 
 
 ## 🚀 Run Locally
 ```bash
